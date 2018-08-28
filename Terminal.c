@@ -36,7 +36,6 @@ void captureCurrentTerminal(struct termios *originalTerm)
 void setInputMode(void)
 {
     struct termios tattr;
-    char *name;
 
     /* Set the terminal modes. */
     tcgetattr(STDIN_FILENO, &tattr);
@@ -46,20 +45,20 @@ void setInputMode(void)
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &tattr);
 }
 
-char *getUserInput(char *prompt, int numOfChar, int flags)
+char *getUserInput(char const *prompt, uint32_t numOfChar, uint8_t flags)
 {
     struct termios originalTerm;
-    char c = '0', *input = NULL, *returnValue = NULL;
+    char c = '0', *input = NULL;
     size_t totalChar = 0;
 
-    input = calloc(numOfChar, sizeof(char));
+    input = calloc(numOfChar + 1, sizeof(char));
 
     captureCurrentTerminal(&originalTerm);
     setInputMode();
 
-    write(STDIN_FILENO, prompt, strlen(prompt));
+    write(STDOUT_FILENO, prompt, strlen(prompt));
 
-    while(c != ENTER || totalChar < numOfChar)
+    while(c != ENTER)
     {
         read(STDIN_FILENO, &c, 1);
         if(isdigit(c) && totalChar != numOfChar && (flags & ISDIGIT))
@@ -75,13 +74,11 @@ char *getUserInput(char *prompt, int numOfChar, int flags)
 
         else if((c == DEL || c == BACKSPACE) && totalChar != 0)
         {
-            write(STDOUT_FILENO, ANSIESC "1D" DELETELINE, 13);
-            totalChar--;
+            write(STDOUT_FILENO, CSI "1D" DELETELINE, 8);
+            input[--totalChar] = '\0';
         }
     }
 
     resetInputMode(&originalTerm);
-    returnValue = input;
-    free(input);
-    return returnValue;
+    return input;
 }
