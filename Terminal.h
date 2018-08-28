@@ -3,13 +3,17 @@
 
 #include <termios.h>
 #include <stdlib.h>
+#include <stdint.h>
 
-#define ISDIGIT 1
-#define ISALPHA 2
+#define ISDIGIT  1
+#define ISALPHA  2
+#define HASTOBE  128
 
 #define ESC "\033"
-#define ANSIESC      ESC        "["
-#define DELETELINE   ANSIESC    "K"
+#define CSI          ESC        "["
+#define DELETELINE   CSI        "K"
+
+#define CURSORLEFT   CSI        "%D"
 
 #define ENTER        '\012'
 #define BACKSPACE    '\010'
@@ -18,5 +22,5 @@
 void captureCurrentTerminal(struct termios *originalTerm);
 void resetInputMode(struct termios *originalTerm);
 void setInputMode(void);
-char *getUserInput(char *prompt, int numOfChar, int flags);
+char *getUserInput(char const *prompt, uint32_t numOfChar, uint8_t flags);
 #endif
